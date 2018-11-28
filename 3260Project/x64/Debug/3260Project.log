@@ -1,7 +1,8 @@
 ﻿  main.cpp
-d:\development\repos\3260project\3260project\main.cpp(263): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-d:\development\repos\3260project\3260project\main.cpp(264): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-d:\development\repos\3260project\3260project\main.cpp(561): warning C4305: '+=': truncation from 'double' to 'float'
-d:\development\repos\3260project\3260project\main.cpp(691): warning C4267: '=': conversion from 'size_t' to 'GLuint', possible loss of data
-d:\development\repos\3260project\3260project\main.cpp(776): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(254): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(268): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(269): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(568): warning C4305: '+=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(701): warning C4267: '=': conversion from 'size_t' to 'GLuint', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(788): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   3260Project.vcxproj -> D:\Development\repos\3260Project\x64\Debug\3260Project.exe

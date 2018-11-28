@@ -62,6 +62,7 @@ float t = 0.0f;
 vec3 lightPosition;
 float diff = 1.0; //diffuse light intensity
 float spec = 1.0; //specular light intensity
+float x = 0.0f;
 
 //vao vbos
 GLuint textureID[NUM_OF_TEXTURE];
@@ -101,7 +102,7 @@ int checkCollision(entity * e1, entity * e2);
 int handleCollision(entity * primary, entity * secondary);
 int initEntity(int objID, int texture, int x, int y, int z, glm::mat4 transform, float radius, int collisionHandler);
 int initRock(float radiusMin, float radiusMax, float vOffset, vec3 centre);
-GLuint loadBMP_data(const char * imagepath, unsigned char ** image, int *width, int *height);
+//GLuint loadBMP_data(const char * imagepath, unsigned char ** image, int *width, int *height);
 
 
 //a series utilities for setting shader parameters 
@@ -176,6 +177,8 @@ string readShaderCode(const char* fileName)
 	);
 }
 
+//need installCubeShader *Brian
+
 void installShaders()
 {
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -248,6 +251,7 @@ void move(int key, int x, int y)
 	else if (key == GLUT_KEY_UP) {
 		EntityList[SpaceCraft]->location =
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, -FLY_SPEED, 1.0f));
+		x += 2.0f;
 	}
 	else if (key == GLUT_KEY_DOWN) {
 		EntityList[SpaceCraft]->location =
@@ -370,6 +374,8 @@ bool loadOBJ(
 	return true;
 }
 
+//need load cube texture function ****** Brian
+
 GLuint loadBMP_custom(const char * imagepath) {
 
 	printf("Reading image %s\n", imagepath);
@@ -430,65 +436,65 @@ GLuint loadBMP_custom(const char * imagepath) {
 	return textureID;
 }
 
-GLuint loadBMP_data(const char * imagepath, unsigned char** image, int *widthR, int *heightR) {
-
-	printf("Reading image %s\n", imagepath);
-
-	unsigned char header[54];
-	unsigned int dataPos;
-	unsigned int imageSize;
-	unsigned int width, height;
-	unsigned char * data;
-
-	FILE * file = fopen(imagepath, "rb");
-	if (!file) { printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar(); return 0; }
-
-	if (fread(header, 1, 54, file) != 54) {
-		printf("Not a correct BMP file\n");
-		return 0;
-	}
-	if (header[0] != 'B' || header[1] != 'M') {
-		printf("Not a correct BMP file\n");
-		return 0;
-	}
-	if (*(int*)&(header[0x1E]) != 0) { printf("Not a correct BMP file\n");    return 0; }
-	if (*(int*)&(header[0x1C]) != 24) { printf("Not a correct BMP file\n");    return 0; }
-
-	dataPos = *(int*)&(header[0x0A]);
-	imageSize = *(int*)&(header[0x22]);
-	width = *(int*)&(header[0x12]);
-	height = *(int*)&(header[0x16]);
-	if (imageSize == 0)    imageSize = width * height * 3;
-	if (dataPos == 0)      dataPos = 54;
-
-	data = new unsigned char[imageSize];
-	fread(data, 1, imageSize, file);
-	fclose(file);
-
-
-	GLuint textureID = 0;
-	//TODO: Create one OpenGL texture and set the texture parameter 
-
-
-	glGenTextures(1, &textureID);
-	// "Bind" the newly created texture : all future texture functions will modify this texture
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	// Give the image to OpenGL
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR,
-		GL_UNSIGNED_BYTE, data);
-	// OpenGL has now copied the data. Free our own version
-	delete[] data;
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-		GL_LINEAR_MIPMAP_LINEAR);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-
-	return textureID;
-}
+//GLuint loadBMP_data(const char * imagepath, unsigned char** image, int *widthR, int *heightR) {
+//
+//	printf("Reading image %s\n", imagepath);
+//
+//	unsigned char header[54];
+//	unsigned int dataPos;
+//	unsigned int imageSize;
+//	unsigned int width, height;
+//	unsigned char * data;
+//
+//	FILE * file = fopen(imagepath, "rb");
+//	if (!file) { printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar(); return 0; }
+//
+//	if (fread(header, 1, 54, file) != 54) {
+//		printf("Not a correct BMP file\n");
+//		return 0;
+//	}
+//	if (header[0] != 'B' || header[1] != 'M') {
+//		printf("Not a correct BMP file\n");
+//		return 0;
+//	}
+//	if (*(int*)&(header[0x1E]) != 0) { printf("Not a correct BMP file\n");    return 0; }
+//	if (*(int*)&(header[0x1C]) != 24) { printf("Not a correct BMP file\n");    return 0; }
+//
+//	dataPos = *(int*)&(header[0x0A]);
+//	imageSize = *(int*)&(header[0x22]);
+//	width = *(int*)&(header[0x12]);
+//	height = *(int*)&(header[0x16]);
+//	if (imageSize == 0)    imageSize = width * height * 3;
+//	if (dataPos == 0)      dataPos = 54;
+//
+//	data = new unsigned char[imageSize];
+//	fread(data, 1, imageSize, file);
+//	fclose(file);
+//
+//
+//	GLuint textureID = 0;
+//	//TODO: Create one OpenGL texture and set the texture parameter 
+//
+//
+//	glGenTextures(1, &textureID);
+//	// "Bind" the newly created texture : all future texture functions will modify this texture
+//	glBindTexture(GL_TEXTURE_2D, textureID);
+//	// Give the image to OpenGL
+//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR,
+//		GL_UNSIGNED_BYTE, data);
+//	// OpenGL has now copied the data. Free our own version
+//	delete[] data;
+//
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+//		GL_LINEAR_MIPMAP_LINEAR);
+//	glGenerateMipmap(GL_TEXTURE_2D);
+//
+//
+//	return textureID;
+//}
 
 
 void sendDataToOpenGL()
@@ -584,9 +590,11 @@ void paintGL(void)
 	//make a sphere follow the light source
 	EntityList[Sun]->location = lightPosition;
 	//make the camera follow the plane
-	//camPos = EntityList[Plane]->location;
+	//camPos = vec3(glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(EntityList[SpaceCraft]->location,0.0));
 	camPos = vec3(EntityList[SpaceCraft]->transform * glm::translate(glm::mat4(),vec3(0.0f,+10.0f,+10.0f)) * glm::vec4(1.0));
 	camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * glm::vec4(camPos, 1.0));
+	//camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, +10.0f, +10.0f,1.0));
+	//camPos = vec3(x, x, x);
 
 	//make the rock oribts
 	for (int i = RockStart; i <= RockEnd; i++) {
@@ -770,6 +778,7 @@ void initializedGL(void) //run only once
 {
 	glewInit();
 	installShaders();
+	//need run installCubeShader ****Brian
 	sendDataToOpenGL();
 }
 
