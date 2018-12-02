@@ -216,7 +216,7 @@ void installShaders()
 
 void keyboard(unsigned char key, int x, int y)
 {
-	if(key == 'f')
+	if (key == 'f')
 		lightPosition = lightPosition + vec3(-2.0f, 0.0f, 0.0f);
 	else if (key == 'h')
 		lightPosition = lightPosition + vec3(2.0f, 0.0f, 0.0f);
@@ -235,6 +235,9 @@ void keyboard(unsigned char key, int x, int y)
 	else if (key == 'e') {
 		EntityList[SpaceCraft]->location =
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, -FLY_SPEED, 0.0f, 1.0f));
+	}
+	else if (key = 27) { // escape key to close the program
+		exit(0);
 	}
 }
 
@@ -259,25 +262,18 @@ void move(int key, int x, int y)
 	}
 
 
+
 }
 int oldx = 0;
 float r = 0.0f;
 void PassiveMouse(int x, int y)
 {
 	//TODO: Use Mouse to do interactive events and animation
-	mouseX = x;
-	mouseY = y;
-	if (x<oldx)
-	{
-		r = 2.0f;
-		EntityList[SpaceCraft]->transform *= glm::rotate(glm::mat4(1.0f), glm::radians(r), glm::vec3(0.0f, 1.0f, 0.0f));
-	}
-	if (x>oldx)
-	{
-		r = -2.0f;
-		EntityList[SpaceCraft]->transform *= glm::rotate(glm::mat4(1.0f), glm::radians(r), glm::vec3(0.0f, 1.0f, 0.0f));
-	}
-	oldx = x;
+	int moveX = x - glutGet(GLUT_WINDOW_WIDTH) / 2;
+	float angleX = moveX / (glutGet(GLUT_WINDOW_WIDTH) / 2.0) * 90.0;
+	glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+	EntityList[SpaceCraft]->transform *= glm::rotate(glm::mat4(1.0f), glm::radians(angleX), glm::vec3(0.0f, 1.0f, 0.0f));
+	printf("%d %.2f\n", moveX, angleX);
 }
 
 bool loadOBJ(
@@ -522,6 +518,8 @@ void sendDataToOpenGL()
 	bufferObject(4, "sources\\planetCentered.obj");
 	bufferObject(5, "sources\\ringCentered.obj");
 	//bufferObject(6, "sources\\jeep.obj");
+
+	glutSetCursor(GLUT_CURSOR_NONE);
 }
 
 mat4 LookAtRH(vec3 eye, vec3 target, vec3 up)
