@@ -41,7 +41,7 @@ const float TOP_BOUND = -20.0f;
 const float BOT_BOUND = 20.0f;
 
 //storing the index of the entities
-const float FLY_SPEED = 0.7f;
+float FLY_SPEED = 0.7f;
 const float ROCK_ORBIT_RATE = 0.01f;
 const float PLANET_TURN_RATE = 0.001f;
 const float RING_TURN_RATE = 0.001f;
@@ -787,7 +787,7 @@ void initializedGL(void) //run only once
 	//need run installCubeShader ****Brian
 	sendDataToOpenGL();
 }
-
+int upgrader;
 
 void initialiseEntities() {
 
@@ -801,11 +801,14 @@ void initialiseEntities() {
 	Planet2 = initEntity(4, 3, +100, 10, 0, 23.0f, 2); // the wonder planet
 	Sun = initEntity(4, 6, 0, 30, 0, 2.0f, 0); // sphere that indicate light position
 	lightPosition = vec3(0.0f, 30.0f, 0.0f);
-	EntityList[Sun]->scale = glm::scale(glm::mat4(), glm::vec3(0.010, 0.0110, 0.0110));
+	EntityList[Sun]->scale = glm::scale(glm::mat4(), glm::vec3(0.0110, 0.0110, 0.0110));
+
+	upgrader = initEntity(4, 7, 0, 0, 30, 2.0f, 6);
+	EntityList[upgrader]->scale = glm::scale(glm::mat4(), glm::vec3(0.050, 0.050, 0.050));
+
 	RockStart = entityCount; //initialise all the rocks
 	for (int i = 0; i < 200; i++) {
 		RockEnd = initRock(60.0f, 90.0f, 7.0f, EntityList[Planet2]->location);
-		printf("i=%d\n", i);
 	}
 
 	RingStart = entityCount;//initialise all the rings
@@ -839,6 +842,11 @@ int handleCollision(entity* primary, entity* secondary) {
 		secondary->status = secondary->status|ST_OUTSIDE_CHECK;
 		secondary->texture = 8;
 		secondary->collisionHandler = 4;
+	}
+	if (primary->collisionHandler == 1 && secondary->collisionHandler == 6) {
+		secondary->status = 0;
+		secondary->collisionHandler = 0;
+		FLY_SPEED += 0.7f;
 	}
 	return 0;
 }
