@@ -841,6 +841,7 @@ int handleCollision(entity* primary, entity* secondary) {
 	if (primary->collisionHandler == 1 && secondary->collisionHandler == 3) {
 		secondary->status = secondary->status|ST_OUTSIDE_CHECK;
 		secondary->texture = 8;
+		primary->texture = 8;
 		secondary->collisionHandler = 4;
 	}
 	if (primary->collisionHandler == 1 && secondary->collisionHandler == 6) {
@@ -855,6 +856,7 @@ int handleExit(entity* primary, entity* secondary) {
 	if (primary->collisionHandler == 1 && secondary->collisionHandler == 4) {
 		secondary->status = secondary->status ^ ST_OUTSIDE_CHECK;
 		secondary->texture = 7;
+		primary->texture = 2;
 		secondary->collisionHandler = 3;
 	}
 	return 0;
