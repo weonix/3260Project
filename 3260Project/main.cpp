@@ -32,6 +32,7 @@ const int NUM_OF_TEXTURE = 10;
 //constant bit flags for indicating status of objects
 const int ST_VISIBLE = 2;
 const int ST_COLLIDABLE = 4;
+const int ST_OUTSIDE_CHECK = 8;
 
 //bound for the plane movement
 const float RIGHT_BOUND = 20.0f;
@@ -43,6 +44,7 @@ const float BOT_BOUND = 20.0f;
 const float FLY_SPEED = 0.7f;
 const float ROCK_ORBIT_RATE = 0.01f;
 const float PLANET_TURN_RATE = 0.001f;
+const float RING_TURN_RATE = 0.001f;
 const float ROCK_TURN_RATE = 0.0007f;
 int Floor;
 int SpaceCraft;
@@ -100,6 +102,7 @@ int initEntity(int objID, int texture, int x, int y, int z, float radius, int co
 void drawEntity(entity* e, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
 int checkCollision(entity * e1, entity * e2);
 int handleCollision(entity * primary, entity * secondary);
+int handleExit(entity * primary, entity * secondary);
 int initEntity(int objID, int texture, int x, int y, int z, glm::mat4 transform, float radius, int collisionHandler);
 int initRock(float radiusMin, float radiusMax, float vOffset, vec3 centre);
 //GLuint loadBMP_data(const char * imagepath, unsigned char ** image, int *width, int *height);
@@ -236,7 +239,7 @@ void keyboard(unsigned char key, int x, int y)
 		EntityList[SpaceCraft]->location =
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, -FLY_SPEED, 0.0f, 1.0f));
 	}
-	else if (key = 27) { // escape key to close the program
+	else if (key == 27) { // escape key to close the program
 		exit(0);
 	}
 }
@@ -273,7 +276,7 @@ void PassiveMouse(int x, int y)
 	float angleX = moveX / (glutGet(GLUT_WINDOW_WIDTH) / 2.0) * 90.0;
 	glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
 	EntityList[SpaceCraft]->transform *= glm::rotate(glm::mat4(1.0f), glm::radians(angleX), glm::vec3(0.0f, 1.0f, 0.0f));
-	printf("%d %.2f\n", moveX, angleX);
+	//printf("%d %.2f\n", moveX, angleX);
 }
 
 bool loadOBJ(
@@ -510,6 +513,7 @@ void sendDataToOpenGL()
 	textureID[5] = loadBMP_custom("sources\\texture\\earthTexture.bmp");
 	textureID[6] = loadBMP_custom("sources\\white_texture.bmp");
 	textureID[7] = loadBMP_custom("sources\\texture\\ringTexture.bmp");
+	textureID[8] = loadBMP_custom("sources\\green_texture.bmp");
 	//Load obj files
 	//bufferObject(0, "sources\\block.obj");
 	bufferObject(1, "sources\\spaceCraft.obj");
@@ -561,7 +565,7 @@ void paintGL(void)
 	//General Upkeepings
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.8f, 0.8f, 0.9f, 1.0f);
+	glClearColor(0.05f, 0.05f, 0.15f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	t += 0.1;
 	setupLight();
@@ -608,6 +612,10 @@ void paintGL(void)
 	//rotate the planets
 	EntityList[Planet1]->transform = glm::rotate(mat4(), PLANET_TURN_RATE, glm::vec3(0.0f, 1.0f, 0.0f)) *  EntityList[Planet1]->transform;
 	EntityList[Planet2]->transform = glm::rotate(mat4(), PLANET_TURN_RATE, glm::vec3(0.0f, 1.0f, 0.0f)) *  EntityList[Planet2]->transform;
+
+	for (int i = RingStart; i <= RingEnd; i++) {
+		EntityList[i]->transform = glm::rotate(mat4(), RING_TURN_RATE, glm::vec3(0.0f, 1.0f, 0.0f)) *  EntityList[i]->transform;
+	}
 
 	//centralised drawing and collision detection for each entity
 	for (int i = 0; i < entityCount; i++) {
@@ -784,13 +792,13 @@ void initializedGL(void) //run only once
 void initialiseEntities() {
 
 	srand(time(NULL));
-	SpaceCraft = initEntity(1, 2, 0, 10, 0, 2.0f, 1); //the plane
+	SpaceCraft = initEntity(1, 2, 0, 10, 0, 4.5f, 1); //the plane
 	//EntityList[Plane]->scale = glm::scale(glm::mat4(), glm::vec3(0.01, 0.01, 0.01));
 	Floor = initEntity(2, 0, 0, 0, 0, glm::scale(glm::mat4(), glm::vec3(3, 1, 4.9)), 2.0f, 0); // the floor
-	EntityList[Floor]->status = EntityList[Floor]->status ^ ST_COLLIDABLE;
-	Planet1 = initEntity(4, 5, -100, 10, 0, 2.0f, 2); // the earth
+	EntityList[Floor]->status = 0;
+	Planet1 = initEntity(4, 5, -100, 10, 0, 23.0f, 2); // the earth
 	
-	Planet2 = initEntity(4, 3, +100, 10, 0, 2.0f, 2); // the wonder planet
+	Planet2 = initEntity(4, 3, +100, 10, 0, 23.0f, 2); // the wonder planet
 	Sun = initEntity(4, 6, 0, 30, 0, 2.0f, 0); // sphere that indicate light position
 	lightPosition = vec3(0.0f, 30.0f, 0.0f);
 	EntityList[Sun]->scale = glm::scale(glm::mat4(), glm::vec3(0.010, 0.0110, 0.0110));
@@ -801,7 +809,7 @@ void initialiseEntities() {
 
 	RingStart = entityCount;//initialise all the rings
 	for (int i = 0; i < 3; i++) {
-		RingEnd = initEntity(5, 7, 0, +10, -10 + -15 * i,  glm::rotate(mat4(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), 2.0f, 3);
+		RingEnd = initEntity(5, 7, 0, +10, -10 + -30 * i,  glm::rotate(mat4(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), 2.0f, 3);
 	}
 	//glm::scale(glm::mat4(), vec3(0.15,0.15,0.15))	*
 
@@ -812,14 +820,33 @@ int checkCollision(entity* e1, entity* e2) {
 	if (glm::length(distance) < e1->collisionRadius + e2->collisionRadius) {
 		handleCollision(e1, e2);
 		handleCollision(e2, e1);
+		return 1;
+	}
+	else if (e1->status & ST_OUTSIDE_CHECK || e2->status & ST_OUTSIDE_CHECK) {
+		handleExit(e1, e2);
+		handleExit(e2, e1);
+		return 2;
 	}
 	return 0;
 }
 
 int handleCollision(entity* primary, entity* secondary) {
 	if (primary->collisionHandler == 1 && secondary->collisionHandler == 2) {
-		
+		secondary->status = 0;
+	}
+	if (primary->collisionHandler == 1 && secondary->collisionHandler == 3) {
+		secondary->status = secondary->status|ST_OUTSIDE_CHECK;
+		secondary->texture = 8;
+		secondary->collisionHandler = 4;
+	}
+	return 0;
+}
 
+int handleExit(entity* primary, entity* secondary) {
+	if (primary->collisionHandler == 1 && secondary->collisionHandler == 4) {
+		secondary->status = secondary->status ^ ST_OUTSIDE_CHECK;
+		secondary->texture = 7;
+		secondary->collisionHandler = 3;
 	}
 	return 0;
 }
