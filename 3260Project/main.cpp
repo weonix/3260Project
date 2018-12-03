@@ -90,7 +90,7 @@ typedef struct entity {
 	glm::mat4 scale;
 }entity;
 
-entity* EntityList[100];
+entity* EntityList[300];
 int entityCount = 0;
 
 
@@ -803,8 +803,9 @@ void initialiseEntities() {
 	lightPosition = vec3(0.0f, 30.0f, 0.0f);
 	EntityList[Sun]->scale = glm::scale(glm::mat4(), glm::vec3(0.010, 0.0110, 0.0110));
 	RockStart = entityCount; //initialise all the rocks
-	for (int i = 0; i < 20; i++) {
-		RockEnd = initRock(50.0f, 60.0f, 5.0f, EntityList[Planet2]->location);
+	for (int i = 0; i < 200; i++) {
+		RockEnd = initRock(60.0f, 90.0f, 7.0f, EntityList[Planet2]->location);
+		printf("i=%d\n", i);
 	}
 
 	RingStart = entityCount;//initialise all the rings
