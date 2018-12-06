@@ -52,6 +52,7 @@ int Planet1, Planet2;
 int RingStart, RingEnd;
 int RockStart, RockEnd;
 int Sun;
+int upgrader;
 
 //stroring gobal game state variables
 
@@ -576,6 +577,16 @@ void paintGL(void)
 	glm::mat4 projectionMatrix = glm::mat4(1.0f);
 	projectionMatrix = glm::perspective((float)glm::radians(90.0f), 1.0f / 1.0f, 0.5f, 200.0f);
 
+	//update entity state and location etc
+	//make a sphere follow the light source
+	EntityList[Sun]->location = lightPosition;
+	//make the camera follow the plane
+	//camPos = vec3(glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(EntityList[SpaceCraft]->location,0.0));
+	camPos = vec3(EntityList[SpaceCraft]->transform * glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(1.0));
+	camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * glm::vec4(camPos, 1.0));
+	//camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, +10.0f, +10.0f,1.0));
+	//camPos = vec3(x, x, x);
+
 	//send eye position
 	GLint eyePosUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
 	glm::vec4 campos4v = glm::vec4(camPos, 0.0);
@@ -588,15 +599,7 @@ void paintGL(void)
 	//viewMatrix = glm::rotate(mat4(), glm::radians(camX), glm::vec3(1.0f, 0.0f, 0.0f)) * viewMatrix;
 
 
-	//update entity state and location etc
-	//make a sphere follow the light source
-	EntityList[Sun]->location = lightPosition;
-	//make the camera follow the plane
-	//camPos = vec3(glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(EntityList[SpaceCraft]->location,0.0));
-	camPos = vec3(EntityList[SpaceCraft]->transform * glm::translate(glm::mat4(),vec3(0.0f,+10.0f,+10.0f)) * glm::vec4(1.0));
-	camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * glm::vec4(camPos, 1.0));
-	//camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, +10.0f, +10.0f,1.0));
-	//camPos = vec3(x, x, x);
+	
 
 	//make the rock oribts
 	for (int i = RockStart; i <= RockEnd; i++) {
@@ -787,7 +790,7 @@ void initializedGL(void) //run only once
 	//need run installCubeShader ****Brian
 	sendDataToOpenGL();
 }
-int upgrader;
+
 
 void initialiseEntities() {
 
