@@ -1,10 +1,11 @@
 ﻿  main.cpp
-d:\development\repos\3260project\3260project\main.cpp(247): warning C4305: '-=': truncation from 'double' to 'float'
-d:\development\repos\3260project\3260project\main.cpp(251): warning C4305: '+=': truncation from 'double' to 'float'
-d:\development\repos\3260project\3260project\main.cpp(255): warning C4305: '-=': truncation from 'double' to 'float'
-d:\development\repos\3260project\3260project\main.cpp(259): warning C4305: '+=': truncation from 'double' to 'float'
-d:\development\repos\3260project\3260project\main.cpp(290): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\development\repos\3260project\3260project\main.cpp(584): warning C4305: '+=': truncation from 'double' to 'float'
-d:\development\repos\3260project\3260project\main.cpp(723): warning C4267: '=': conversion from 'size_t' to 'GLuint', possible loss of data
-d:\development\repos\3260project\3260project\main.cpp(810): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(251): warning C4305: '-=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(255): warning C4305: '+=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(259): warning C4305: '-=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(263): warning C4305: '+=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(291): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(670): warning C4305: '+=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(844): warning C4267: '=': conversion from 'size_t' to 'GLuint', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(896): warning C4267: '=': conversion from 'size_t' to 'GLuint', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(983): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   3260Project.vcxproj -> D:\Development\repos\3260Project\x64\Debug\3260Project.exe

@@ -51,7 +51,7 @@ int SpaceCraft;
 int Planet1, Planet2;
 int RingStart, RingEnd;
 int RockStart, RockEnd;
-int Sun;
+int Sun, Sun2;
 int upgrader;
 
 //stroring gobal game state variables
@@ -63,8 +63,11 @@ float camY = 0.0;
 float camX = 45.0;
 float t = 0.0f;
 vec3 lightPosition;
+vec3 lightPosition2;
 float diff = 1.0; //diffuse light intensity
 float spec = 1.0; //specular light intensity
+float diff2 = 1.0; //diffuse light intensity
+float spec2 = 1.0;
 
 //vao vbos
 GLuint textureID[NUM_OF_TEXTURE];
@@ -96,6 +99,7 @@ int entityCount = 0;
 
 //custom function prototypes
 void bufferObject(int objectID, const char * Path);
+void bufferObject_reverse_normal(int objectID, const char * Path);
 void setupLight();
 void drawTextureObject(int index, int Texture, glm::mat4 transformMatrix, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
 int initEntity(int objID, int texture, int x, int y, int z, float radius, int collisionHandler);
@@ -277,9 +281,6 @@ void move(int key, int x, int y){
 		EntityList[SpaceCraft]->location =
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, FLY_SPEED, 1.0f));
 	}
-
-
-
 }
 int oldx = 0;
 float r = 0.0f;
@@ -337,6 +338,101 @@ bool loadOBJ(
 		else if (strcmp(lineHeader, "vn") == 0) {
 			glm::vec3 normal;
 			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			temp_normals.push_back(normal);
+		}
+		else if (strcmp(lineHeader, "f") == 0) {
+			std::string vertex1, vertex2, vertex3;
+			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+			int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
+			if (matches != 9) {
+				printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+				return false;
+			}
+			vertexIndices.push_back(vertexIndex[0]);
+			vertexIndices.push_back(vertexIndex[1]);
+			vertexIndices.push_back(vertexIndex[2]);
+			uvIndices.push_back(uvIndex[0]);
+			uvIndices.push_back(uvIndex[1]);
+			uvIndices.push_back(uvIndex[2]);
+			normalIndices.push_back(normalIndex[0]);
+			normalIndices.push_back(normalIndex[1]);
+			normalIndices.push_back(normalIndex[2]);
+		}
+		else {
+			char stupidBuffer[1000];
+			fgets(stupidBuffer, 1000, file);
+		}
+
+	}
+
+	// For each vertex of each triangle
+	for (unsigned int i = 0; i<vertexIndices.size(); i++) {
+
+		// Get the indices of its attributes
+		unsigned int vertexIndex = vertexIndices[i];
+		unsigned int uvIndex = uvIndices[i];
+		unsigned int normalIndex = normalIndices[i];
+
+		// Get the attributes thanks to the index
+		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+		glm::vec2 uv = temp_uvs[uvIndex - 1];
+		glm::vec3 normal = temp_normals[normalIndex - 1];
+
+		// Put the attributes in buffers
+		out_vertices.push_back(vertex);
+		out_uvs.push_back(uv);
+		out_normals.push_back(normal);
+
+	}
+
+	return true;
+}
+
+bool loadOBJ_reverse_normal(
+	const char * path,
+	std::vector<glm::vec3> & out_vertices,
+	std::vector<glm::vec2> & out_uvs,
+	std::vector<glm::vec3> & out_normals
+) {
+	printf("Loading OBJ file %s...\n", path);
+
+	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+	std::vector<glm::vec3> temp_vertices;
+	std::vector<glm::vec2> temp_uvs;
+	std::vector<glm::vec3> temp_normals;
+
+
+	FILE * file = fopen(path, "r");
+	if (file == NULL) {
+		printf("Impossible to open the file ! Are you in the right path ? See Tutorial 6 for details\n");
+		getchar();
+		return false;
+	}
+
+	while (1) {
+
+		char lineHeader[128];
+		int res = fscanf(file, "%s", lineHeader);
+		if (res == EOF)
+			break; // EOF = End Of File. Quit the loop.
+
+				   // else : parse lineHeader
+
+		if (strcmp(lineHeader, "v") == 0) {
+			glm::vec3 vertex;
+			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+			temp_vertices.push_back(vertex);
+		}
+		else if (strcmp(lineHeader, "vt") == 0) {
+			glm::vec2 uv;
+			fscanf(file, "%f %f\n", &uv.x, &uv.y);
+			uv.y = -uv.y;
+			temp_uvs.push_back(uv);
+		}
+		else if (strcmp(lineHeader, "vn") == 0) {
+			glm::vec3 normal;
+			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			normal = - normal;
 			temp_normals.push_back(normal);
 		}
 		else if (strcmp(lineHeader, "f") == 0) {
@@ -449,66 +545,52 @@ GLuint loadBMP_custom(const char * imagepath) {
 	return textureID;
 }
 
-//GLuint loadBMP_data(const char * imagepath, unsigned char** image, int *widthR, int *heightR) {
-//
-//	printf("Reading image %s\n", imagepath);
-//
-//	unsigned char header[54];
-//	unsigned int dataPos;
-//	unsigned int imageSize;
-//	unsigned int width, height;
-//	unsigned char * data;
-//
-//	FILE * file = fopen(imagepath, "rb");
-//	if (!file) { printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar(); return 0; }
-//
-//	if (fread(header, 1, 54, file) != 54) {
-//		printf("Not a correct BMP file\n");
-//		return 0;
-//	}
-//	if (header[0] != 'B' || header[1] != 'M') {
-//		printf("Not a correct BMP file\n");
-//		return 0;
-//	}
-//	if (*(int*)&(header[0x1E]) != 0) { printf("Not a correct BMP file\n");    return 0; }
-//	if (*(int*)&(header[0x1C]) != 24) { printf("Not a correct BMP file\n");    return 0; }
-//
-//	dataPos = *(int*)&(header[0x0A]);
-//	imageSize = *(int*)&(header[0x22]);
-//	width = *(int*)&(header[0x12]);
-//	height = *(int*)&(header[0x16]);
-//	if (imageSize == 0)    imageSize = width * height * 3;
-//	if (dataPos == 0)      dataPos = 54;
-//
-//	data = new unsigned char[imageSize];
-//	fread(data, 1, imageSize, file);
-//	fclose(file);
-//
-//
-//	GLuint textureID = 0;
-//	//TODO: Create one OpenGL texture and set the texture parameter 
-//
-//
-//	glGenTextures(1, &textureID);
-//	// "Bind" the newly created texture : all future texture functions will modify this texture
-//	glBindTexture(GL_TEXTURE_2D, textureID);
-//	// Give the image to OpenGL
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR,
-//		GL_UNSIGNED_BYTE, data);
-//	// OpenGL has now copied the data. Free our own version
-//	delete[] data;
-//
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-//		GL_LINEAR_MIPMAP_LINEAR);
-//	glGenerateMipmap(GL_TEXTURE_2D);
-//
-//
-//	return textureID;
-//}
+/*vertex of skybox*/
+const float bottom[] = {
+	-10.0f, 10.0f, -10.0f, //A
+	10.0f, 10.0f, -10.0f, //B
+	-10.0f, -10.0f, -10.0f, //C
+	10.0f, -10.0f, -10.0f, //D
+};
 
+const float front[] = {
+	-10.0f, 10.0f, 10.0f, //E
+	10.0f, 10.0f, 10.0f, //F
+	-10.0f, 10.0f, -10.0f, //A
+	10.0f, 10.0f, -10.0f, //B
+};
+
+const float back[] = {
+	-10.0f, -10.0f, -10.0f, //C
+	10.0f, -10.0f, -10.0f, //D
+	-10.0f, -10.0f, 10.0f, //G
+	10.0f, -10.0f, 10.0f, //H
+};
+
+const float left[] = {
+	-10.0f, 10.0f, 10.0f, //E
+	-10.0f, 10.0f, -10.0f, //A
+	-10.0f, -10.0f, 10.0f, //G
+	-10.0f, -10.0f, -10.0f, //C
+};
+
+const float right[] = {
+	10.0f, 10.0f, -10.0f, //B
+	10.0f, 10.0f, 10.0f, //F
+	10.0f, -10.0f, -10.0f, //D
+	10.0f, -10.0f, 10.0f, //H
+};
+
+const float top[] = {
+	10.0f, 10.0f, 10.0f, //F
+	-10.0f, 10.0f, 10.0f, //E
+	10.0f, -10.0f, 10.0f, //H
+	-10.0f, -10.0f, 10.0f, //G
+};
+
+//const GLuint planeIndex[] = {
+
+//};
 
 void sendDataToOpenGL()
 {
@@ -528,6 +610,7 @@ void sendDataToOpenGL()
 	textureID[6] = loadBMP_custom("sources\\white_texture.bmp");
 	textureID[7] = loadBMP_custom("sources\\texture\\ringTexture.bmp");
 	textureID[8] = loadBMP_custom("sources\\green_texture.bmp");
+	textureID[9] = loadBMP_custom("sources\\sun_texture.bmp");
 	//Load obj files
 	//bufferObject(0, "sources\\block.obj");
 	bufferObject(1, "sources\\spaceCraft.obj");
@@ -535,7 +618,7 @@ void sendDataToOpenGL()
 	bufferObject(3, "sources\\rock.obj");
 	bufferObject(4, "sources\\planetCentered.obj");
 	bufferObject(5, "sources\\ringCentered.obj");
-	//bufferObject(6, "sources\\jeep.obj");
+	bufferObject_reverse_normal(6, "sources\\planetCentered.obj");
 
 	glutSetCursor(GLUT_CURSOR_NONE);
 }
@@ -574,6 +657,9 @@ mat4 LookAtRH(vec3 eye, vec3 target, vec3 up)
 	return (orientation * translation);
 }
 
+
+
+
 void paintGL(void)
 {
 	//General Upkeepings
@@ -593,6 +679,7 @@ void paintGL(void)
 	//update entity state and location etc
 	//make a sphere follow the light source
 	EntityList[Sun]->location = lightPosition;
+	EntityList[Sun2]->location = lightPosition2;
 	//make the camera follow the plane
 	//camPos = vec3(glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(EntityList[SpaceCraft]->location,0.0));
 	camPos = vec3(EntityList[SpaceCraft]->transform * glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(1.0));
@@ -653,7 +740,7 @@ void paintGL(void)
 
 void setupLight()
 {
-	//Set up lighting information
+	//Set up lighting information for source 1
 	GLint lightPositonUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
 	glUniform3fv(lightPositonUniformLocation, 1, &lightPosition[0]);
 
@@ -663,11 +750,45 @@ void setupLight()
 
 
 	GLint diffuseLightUniformLocation = glGetUniformLocation(programID, "diffuseLight");
-	glm::vec4 diffuseLight(diff, diff, diff, 1.0f);
+	glm::vec4 diffuseLight(diff, diff, diff, 0.0f);
 	glUniform4fv(diffuseLightUniformLocation, 1, &diffuseLight[0]);
 
 	GLint specularLightUniformLocation = glGetUniformLocation(programID, "specularLight");
-	glm::vec4 specularLight(spec, spec, spec, 1.0f);
+	glm::vec4 specularLight(spec, spec, spec, 0.0f);
+	glUniform4fv(specularLightUniformLocation, 1, &specularLight[0]);
+
+	//light souce 2
+	GLint lightPositonUniformLocation2 = glGetUniformLocation(programID, "lightPositionWorld2");
+	glUniform3fv(lightPositonUniformLocation2, 1, &lightPosition2[0]);
+
+	GLint diffuseLightUniformLocation2 = glGetUniformLocation(programID, "diffuseLight2");
+	glm::vec4 diffuseLight2(diff2/2, diff2/2, diff2, 0.0f);
+	glUniform4fv(diffuseLightUniformLocation2, 1, &diffuseLight2[0]);
+
+	GLint specularLightUniformLocation2 = glGetUniformLocation(programID, "specularLight2");
+	glm::vec4 specularLight2(spec2/2, spec2/2, spec2/2, 0.0f);
+	glUniform4fv(specularLightUniformLocation2, 1, &specularLight2[0]);
+}
+
+
+void setupCubeLight()
+{
+	//Set up lighting information
+	GLint lightPositonUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
+	glUniform3fv(lightPositonUniformLocation, 1, &lightPosition[0]);
+
+	GLint ambLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
+	glm::vec4 ambientLight(1.0f, 1.0f, 1.0f, 1.0f);
+	glUniform4fv(ambLightUniformLocation, 1, &ambientLight[0]);
+
+
+	GLint diffuseLightUniformLocation = glGetUniformLocation(programID, "diffuseLight");
+	//glm::vec4 diffuseLight(diff, diff, diff, 1.0f);
+	glm::vec4 diffuseLight(0, 0, 0, 1.0f);
+	glUniform4fv(diffuseLightUniformLocation, 1, &diffuseLight[0]);
+
+	GLint specularLightUniformLocation = glGetUniformLocation(programID, "specularLight");
+	glm::vec4 specularLight(0, 0, 0, 1.0f);
 	glUniform4fv(specularLightUniformLocation, 1, &specularLight[0]);
 }
 
@@ -677,6 +798,58 @@ void bufferObject(int objectID, const char* Path) {
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
 	bool res = loadOBJ(Path, vertices, uvs, normals);
+
+	glBindVertexArray(VertexArrayID[objectID]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[objectID]);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
+		&vertices[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(
+		0, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer[objectID]);
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0],
+		GL_STATIC_DRAW);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(
+		1, // attribute
+		2, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer[objectID]);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0],
+		GL_STATIC_DRAW);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(
+		2, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+
+	drawSize[objectID] = vertices.size();
+}
+
+void bufferObject_reverse_normal(int objectID, const char* Path) {
+	//read from an obj file and send its data to the VAO VBOS at the designated ID
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	bool res = loadOBJ_reverse_normal(Path, vertices, uvs, normals);
 
 	glBindVertexArray(VertexArrayID[objectID]);
 
@@ -815,9 +988,13 @@ void initialiseEntities() {
 	Planet1 = initEntity(4, 5, -100, 10, 0, 23.0f, 2); // the earth
 	
 	Planet2 = initEntity(4, 3, +100, 10, 0, 23.0f, 2); // the wonder planet
-	Sun = initEntity(4, 6, 0, 30, 0, 2.0f, 0); // sphere that indicate light position
-	lightPosition = vec3(0.0f, 30.0f, 0.0f);
-	EntityList[Sun]->scale = glm::scale(glm::mat4(), glm::vec3(0.0110, 0.0110, 0.0110));
+	Sun = initEntity(6, 9, 0, 30, 0, 2.0f, 0); // sphere that indicate light position
+	lightPosition = vec3(0.0f, 40.0f, 0.0f);
+	EntityList[Sun]->scale = glm::scale(glm::mat4(), glm::vec3(0.15, 0.15, 0.15));
+
+	Sun2 = initEntity(6, 9, 0, 30, 0, 2.0f, 0); // sphere that indicate light position
+	lightPosition2 = vec3(50.0f, 20.0f, 0.0f);
+	EntityList[Sun2]->scale = glm::scale(glm::mat4(), glm::vec3(0.15, 0.15, 0.15));
 
 	upgrader = initEntity(4, 7, 0, 0, 30, 2.0f, 6);
 	EntityList[upgrader]->scale = glm::scale(glm::mat4(), glm::vec3(0.050, 0.050, 0.050));
