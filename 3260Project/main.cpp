@@ -26,8 +26,8 @@ using glm::mat4;
 GLint programID;
 // Could define the Vao&Vbo and interaction parameter here
 //maximum number of models and texture
-const int NUM_OF_OBJECT = 10;
-const int NUM_OF_TEXTURE = 10;
+const int NUM_OF_OBJECT = 20;
+const int NUM_OF_TEXTURE = 20;
 
 //constant bit flags for indicating status of objects
 const int ST_VISIBLE = 2;
@@ -66,8 +66,8 @@ vec3 lightPosition;
 vec3 lightPosition2;
 float diff = 1.0; //diffuse light intensity
 float spec = 1.0; //specular light intensity
-float diff2 = 1.0; //diffuse light intensity
-float spec2 = 1.0;
+float diff2 = 0.0; //diffuse light intensity
+float spec2 = 0.0;
 
 //vao vbos
 GLuint textureID[NUM_OF_TEXTURE];
@@ -224,13 +224,13 @@ void installShaders()
 void keyboard(unsigned char key, int x, int y)
 {
 	if (key == 'f')
-		lightPosition = lightPosition + vec3(-2.0f, 0.0f, 0.0f);
+		lightPosition =	vec3(glm::translate(glm::mat4(), lightPosition) * EntityList[SpaceCraft]->transform *  glm::vec4(-FLY_SPEED, 0.0f, 0.0f, 1.0f));
 	else if (key == 'h')
-		lightPosition = lightPosition + vec3(2.0f, 0.0f, 0.0f);
+		lightPosition = vec3(glm::translate(glm::mat4(), lightPosition) * EntityList[SpaceCraft]->transform *  glm::vec4(FLY_SPEED, 0.0f, 0.0f, 1.0f));
 	else if (key == 'g')
-		lightPosition = lightPosition + vec3(0.0f, 0.0f, 2.0f);
+		lightPosition = vec3(glm::translate(glm::mat4(), lightPosition) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, FLY_SPEED, 1.0f));
 	else if (key == 't')
-		lightPosition = lightPosition + vec3(0.0f, 0.0f, -2.0f);
+		lightPosition = vec3(glm::translate(glm::mat4(), lightPosition) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, -FLY_SPEED, 1.0f));
 	else if (key == 'r')
 		lightPosition = lightPosition + vec3(0.0f, 2.0f, 0.0f);
 	else if (key == 'y')
@@ -262,6 +262,41 @@ void keyboard(unsigned char key, int x, int y)
 		if (spec < 2)
 		spec += 0.1;
 	}
+	else if (key == 'l')
+		lightPosition2 = vec3(glm::translate(glm::mat4(), lightPosition2) * EntityList[SpaceCraft]->transform *  glm::vec4(-FLY_SPEED, 0.0f, 0.0f, 1.0f));
+	else if (key == 39)
+		lightPosition2 = vec3(glm::translate(glm::mat4(), lightPosition2) * EntityList[SpaceCraft]->transform *  glm::vec4(FLY_SPEED, 0.0f, 0.0f, 1.0f));
+	else if (key == 'p')
+		lightPosition2 = vec3(glm::translate(glm::mat4(), lightPosition2) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, -FLY_SPEED, 1.0f));
+	else if (key == ';')
+		lightPosition2 = vec3(glm::translate(glm::mat4(), lightPosition2) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, FLY_SPEED, 1.0f));
+	else if (key == 'o')
+		lightPosition2 = lightPosition2 + vec3(0.0f, 2.0f, 0.0f);
+	else if (key == '[')
+		lightPosition2 = lightPosition2 + vec3(0.0f, -2.0f, 0.0f);
+	else if (key == ']') {
+		if (EntityList[Sun2]->status == 0) {
+			EntityList[Sun2]->status = ST_VISIBLE;
+			diff2 = 1.1;
+			spec2 = 1;
+		}
+		else {
+			EntityList[Sun2]->status = 0;
+			diff2 = 0;
+			spec2 = 0;
+
+		}
+	}
+	else if (key = 'z') {
+		EntityList[Sun2]->status = ST_VISIBLE;
+		diff2 = 1.1;
+		spec2 = 1;
+		spec = 1;
+		diff = 1;
+		lightPosition = vec3(0.0, 40.0f, 0.f);
+		lightPosition2 = vec3(30.0, 40.0f, 0.f);
+	}
+
 }
 
 void move(int key, int x, int y){
@@ -611,6 +646,7 @@ void sendDataToOpenGL()
 	textureID[7] = loadBMP_custom("sources\\texture\\ringTexture.bmp");
 	textureID[8] = loadBMP_custom("sources\\green_texture.bmp");
 	textureID[9] = loadBMP_custom("sources\\sun_texture.bmp");
+	textureID[10] = loadBMP_custom("sources\\blue_sun.bmp");
 	//Load obj files
 	//bufferObject(0, "sources\\block.obj");
 	bufferObject(1, "sources\\spaceCraft.obj");
@@ -697,8 +733,6 @@ void paintGL(void)
 	//viewMatrix = glm::translate(mat4(), -camPos) * viewMatrix;
 	//viewMatrix = glm::inverse(EntityList[Plane]->transform) * viewMatrix;//glm::rotate(mat4(), glm::radians(camY), glm::vec3(0.0f, 0.0f, 1.0f));
 	//viewMatrix = glm::rotate(mat4(), glm::radians(camX), glm::vec3(1.0f, 0.0f, 0.0f)) * viewMatrix;
-
-
 	
 
 	//make the rock oribts
@@ -762,7 +796,7 @@ void setupLight()
 	glUniform3fv(lightPositonUniformLocation2, 1, &lightPosition2[0]);
 
 	GLint diffuseLightUniformLocation2 = glGetUniformLocation(programID, "diffuseLight2");
-	glm::vec4 diffuseLight2(diff2/2, diff2/2, diff2, 0.0f);
+	glm::vec4 diffuseLight2(diff2/3, diff2/3, diff2, 0.0f);
 	glUniform4fv(diffuseLightUniformLocation2, 1, &diffuseLight2[0]);
 
 	GLint specularLightUniformLocation2 = glGetUniformLocation(programID, "specularLight2");
@@ -992,9 +1026,10 @@ void initialiseEntities() {
 	lightPosition = vec3(0.0f, 40.0f, 0.0f);
 	EntityList[Sun]->scale = glm::scale(glm::mat4(), glm::vec3(0.15, 0.15, 0.15));
 
-	Sun2 = initEntity(6, 9, 0, 30, 0, 2.0f, 0); // sphere that indicate light position
-	lightPosition2 = vec3(50.0f, 20.0f, 0.0f);
+	Sun2 = initEntity(6, 10, 0, 30, 0, 2.0f, 0); // sphere that indicate light position
+	lightPosition2 = vec3(30.0f, 40.0f, 0.0f);
 	EntityList[Sun2]->scale = glm::scale(glm::mat4(), glm::vec3(0.15, 0.15, 0.15));
+	EntityList[Sun2]->status = 0;
 
 	upgrader = initEntity(4, 7, 0, 0, 30, 2.0f, 6);
 	EntityList[upgrader]->scale = glm::scale(glm::mat4(), glm::vec3(0.050, 0.050, 0.050));
