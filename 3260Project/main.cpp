@@ -44,7 +44,7 @@ const float BOT_BOUND = 20.0f;
 float FLY_SPEED = 0.7f;
 const float ROCK_ORBIT_RATE = 0.01f;
 const float PLANET_TURN_RATE = 0.001f;
-const float RING_TURN_RATE = 0.001f;
+const float RING_TURN_RATE = -0.0015f;
 const float ROCK_TURN_RATE = 0.0007f;
 int Floor;
 int SpaceCraft;
@@ -53,6 +53,7 @@ int RingStart, RingEnd;
 int RockStart, RockEnd;
 int Sun, Sun2;
 int upgrader;
+
 
 //stroring gobal game state variables
 
@@ -71,6 +72,7 @@ float spec2 = 0.0;
 
 //vao vbos
 GLuint textureID[NUM_OF_TEXTURE];
+GLuint cubeTextureID[6];
 GLuint VertexArrayID[NUM_OF_OBJECT];
 GLuint vertexbuffer[NUM_OF_OBJECT];
 GLuint uvbuffer[NUM_OF_OBJECT];
@@ -101,6 +103,7 @@ int entityCount = 0;
 void bufferObject(int objectID, const char * Path);
 void bufferObject_reverse_normal(int objectID, const char * Path);
 void setupLight();
+void renderSkybox();
 void drawTextureObject(int index, int Texture, glm::mat4 transformMatrix, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
 int initEntity(int objID, int texture, int x, int y, int z, float radius, int collisionHandler);
 void drawEntity(entity* e, glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
@@ -287,7 +290,7 @@ void keyboard(unsigned char key, int x, int y)
 
 		}
 	}
-	else if (key = 'z') {
+	else if (key == 'z') {
 		EntityList[Sun2]->status = ST_VISIBLE;
 		diff2 = 1.1;
 		spec2 = 1;
@@ -580,53 +583,6 @@ GLuint loadBMP_custom(const char * imagepath) {
 	return textureID;
 }
 
-/*vertex of skybox*/
-const float bottom[] = {
-	-10.0f, 10.0f, -10.0f, //A
-	10.0f, 10.0f, -10.0f, //B
-	-10.0f, -10.0f, -10.0f, //C
-	10.0f, -10.0f, -10.0f, //D
-};
-
-const float front[] = {
-	-10.0f, 10.0f, 10.0f, //E
-	10.0f, 10.0f, 10.0f, //F
-	-10.0f, 10.0f, -10.0f, //A
-	10.0f, 10.0f, -10.0f, //B
-};
-
-const float back[] = {
-	-10.0f, -10.0f, -10.0f, //C
-	10.0f, -10.0f, -10.0f, //D
-	-10.0f, -10.0f, 10.0f, //G
-	10.0f, -10.0f, 10.0f, //H
-};
-
-const float left[] = {
-	-10.0f, 10.0f, 10.0f, //E
-	-10.0f, 10.0f, -10.0f, //A
-	-10.0f, -10.0f, 10.0f, //G
-	-10.0f, -10.0f, -10.0f, //C
-};
-
-const float right[] = {
-	10.0f, 10.0f, -10.0f, //B
-	10.0f, 10.0f, 10.0f, //F
-	10.0f, -10.0f, -10.0f, //D
-	10.0f, -10.0f, 10.0f, //H
-};
-
-const float top[] = {
-	10.0f, 10.0f, 10.0f, //F
-	-10.0f, 10.0f, 10.0f, //E
-	10.0f, -10.0f, 10.0f, //H
-	-10.0f, -10.0f, 10.0f, //G
-};
-
-//const GLuint planeIndex[] = {
-
-//};
-
 void sendDataToOpenGL()
 {
 	//Generate buffers
@@ -647,6 +603,10 @@ void sendDataToOpenGL()
 	textureID[8] = loadBMP_custom("sources\\green_texture.bmp");
 	textureID[9] = loadBMP_custom("sources\\sun_texture.bmp");
 	textureID[10] = loadBMP_custom("sources\\blue_sun.bmp");
+
+	cubeTextureID[0] = loadBMP_custom("sources\\box1.bmp");
+	cubeTextureID[1] = loadBMP_custom("sources\\box2.bmp");
+
 	//Load obj files
 	//bufferObject(0, "sources\\block.obj");
 	bufferObject(1, "sources\\spaceCraft.obj");
@@ -655,6 +615,15 @@ void sendDataToOpenGL()
 	bufferObject(4, "sources\\planetCentered.obj");
 	bufferObject(5, "sources\\ringCentered.obj");
 	bufferObject_reverse_normal(6, "sources\\planetCentered.obj");
+
+	//load skybox object
+	bufferObject(7, "sources\\boxPlane.obj");
+	bufferObject(8, "sources\\boxPlane.obj");
+	bufferObject(9, "sources\\boxPlane.obj");
+	bufferObject(10, "sources\\boxPlane.obj");
+	bufferObject(11, "sources\\boxPlane.obj");
+	bufferObject(12, "sources\\boxPlane.obj");
+
 
 	glutSetCursor(GLUT_CURSOR_NONE);
 }
@@ -704,6 +673,10 @@ void paintGL(void)
 	glClearColor(0.05f, 0.05f, 0.15f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	t += 0.1;
+
+	renderSkybox();
+
+
 	setupLight();
 
 	//Set transformation matrix
@@ -733,6 +706,8 @@ void paintGL(void)
 	//viewMatrix = glm::translate(mat4(), -camPos) * viewMatrix;
 	//viewMatrix = glm::inverse(EntityList[Plane]->transform) * viewMatrix;//glm::rotate(mat4(), glm::radians(camY), glm::vec3(0.0f, 0.0f, 1.0f));
 	//viewMatrix = glm::rotate(mat4(), glm::radians(camX), glm::vec3(1.0f, 0.0f, 0.0f)) * viewMatrix;
+
+
 	
 
 	//make the rock oribts
@@ -805,8 +780,9 @@ void setupLight()
 }
 
 
-void setupCubeLight()
+void renderSkybox()
 {
+	glDepthMask(GL_FALSE);
 	//Set up lighting information
 	GLint lightPositonUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
 	glUniform3fv(lightPositonUniformLocation, 1, &lightPosition[0]);
@@ -824,6 +800,175 @@ void setupCubeLight()
 	GLint specularLightUniformLocation = glGetUniformLocation(programID, "specularLight");
 	glm::vec4 specularLight(0, 0, 0, 1.0f);
 	glUniform4fv(specularLightUniformLocation, 1, &specularLight[0]);
+
+	//light souce 2
+	GLint lightPositonUniformLocation2 = glGetUniformLocation(programID, "lightPositionWorld2");
+	glUniform3fv(lightPositonUniformLocation2, 1, &lightPosition2[0]);
+
+	GLint diffuseLightUniformLocation2 = glGetUniformLocation(programID, "diffuseLight2");
+	glm::vec4 diffuseLight2(0, 0, 0, 0.0f);
+	glUniform4fv(diffuseLightUniformLocation2, 1, &diffuseLight2[0]);
+
+	GLint specularLightUniformLocation2 = glGetUniformLocation(programID, "specularLight2");
+	glm::vec4 specularLight2(0, 0, 0, 0.0f);
+	glUniform4fv(specularLightUniformLocation2, 1, &specularLight2[0]);
+
+
+	//set up projection matrix
+	glm::mat4 projectionMatrix = glm::mat4(1.0f);
+	//projectionMatrix = glm::perspective((float)glm::radians(90.0f), 1.0f / 1.0f, 0.5f, 200.0f);
+
+	//update entity state and location etc
+	//make a sphere follow the light source
+	//EntityList[Sun]->location = lightPosition;
+	//EntityList[Sun2]->location = lightPosition2;
+	camPos = vec3(EntityList[SpaceCraft]->transform * glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(1.0));
+	camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * glm::vec4(camPos, 1.0));
+
+	//send eye position
+	GLint eyePosUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
+	glm::vec4 campos4v = glm::vec4(camPos, 0.0);
+	glUniform4fv(eyePosUniformLocation, 1, &campos4v[0]);
+
+	//set up view matrix
+	glm::mat4 viewMatrix = LookAtRH(camPos, EntityList[SpaceCraft]->location, vec3(0.0f, 1.0f, 0.0f));
+
+	GLint viewUniformLocation = glGetUniformLocation(programID, "viewMatrix");
+	glUniformMatrix4fv(viewUniformLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+
+	//GLint projectionMatrixUniformLocation = glGetUniformLocation(programID, "projectionMatrix");
+	//glUniformMatrix4fv(projectionMatrixUniformLocation, 1, GL_FALSE, &projectionMatrix[0][0]);
+
+	GLint modelTransformMatrixUniformLocation = glGetUniformLocation(programID, "modelTransformMatrix");
+
+	GLuint localTextureID = glGetUniformLocation(programID, "myTextureSampler");
+
+	glm::mat4 modelTransformMatrix;
+
+	//draw box
+
+	//draw bottom
+	glBindVertexArray(VertexArrayID[7]);
+	modelTransformMatrix = glm::mat4(1.0f);
+
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		glm::vec3(0.0f, -30.0f, 0.0f));;
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		EntityList[SpaceCraft]->location);;
+	/*modelTransformMatrix = glm::rotate(modelTransformMatrix, glm::radians(90.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f));;*/
+	modelTransformMatrix = glm::scale(modelTransformMatrix,
+		glm::vec3(3.0f));;
+	glUniformMatrix4fv(modelTransformMatrixUniformLocation, 1,
+		GL_FALSE, &modelTransformMatrix[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, cubeTextureID[0]);
+	glUniform1i(localTextureID, 0);
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[7]);
+
+	//draw top
+	glBindVertexArray(VertexArrayID[8]);
+	modelTransformMatrix = glm::mat4(1.0f);
+
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		glm::vec3(0.0f, -30.0f, 0.0f));;
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		EntityList[SpaceCraft]->location);;
+	/*modelTransformMatrix = glm::rotate(modelTransformMatrix, glm::radians(90.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f));;*/
+	modelTransformMatrix = glm::scale(modelTransformMatrix,
+		glm::vec3(3.0f));;
+	glUniformMatrix4fv(modelTransformMatrixUniformLocation, 1,
+		GL_FALSE, &modelTransformMatrix[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, cubeTextureID[0]);
+	glUniform1i(localTextureID, 0);
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[8]);
+
+	//draw front
+	glBindVertexArray(VertexArrayID[9]);
+	modelTransformMatrix = glm::mat4(1.0f);
+
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		glm::vec3(0.0f, 0.0f, -30.0f));;
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		EntityList[SpaceCraft]->location);;
+	modelTransformMatrix = glm::rotate(modelTransformMatrix, glm::radians(90.0f),
+		glm::vec3(1.0f, 0.0f, 0.0f));;
+	modelTransformMatrix = glm::scale(modelTransformMatrix,
+		glm::vec3(3.0f));;
+	glUniformMatrix4fv(modelTransformMatrixUniformLocation, 1,
+		GL_FALSE, &modelTransformMatrix[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, cubeTextureID[0]);
+	glUniform1i(localTextureID, 0);
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[9]);
+
+	//draw back
+	glBindVertexArray(VertexArrayID[10]);
+	modelTransformMatrix = glm::mat4(1.0f);
+
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		glm::vec3(0.0f, 0.0f, 30.0f));;
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		EntityList[SpaceCraft]->location);;
+	modelTransformMatrix = glm::rotate(modelTransformMatrix, glm::radians(90.0f),
+		glm::vec3(1.0f, 0.0f, 0.0f));;
+	modelTransformMatrix = glm::scale(modelTransformMatrix,
+		glm::vec3(3.0f));;
+	glUniformMatrix4fv(modelTransformMatrixUniformLocation, 1,
+		GL_FALSE, &modelTransformMatrix[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, cubeTextureID[1]);
+	glUniform1i(localTextureID, 0);
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[10]);
+
+	//draw left
+	glBindVertexArray(VertexArrayID[11]);
+	modelTransformMatrix = glm::mat4(1.0f);
+
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		glm::vec3(-30.0f, 0.0f, 0.0f));;
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		EntityList[SpaceCraft]->location);;
+	modelTransformMatrix = glm::rotate(modelTransformMatrix, glm::radians(90.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f));;
+	modelTransformMatrix = glm::scale(modelTransformMatrix,
+		glm::vec3(3.0f));;
+	glUniformMatrix4fv(modelTransformMatrixUniformLocation, 1,
+		GL_FALSE, &modelTransformMatrix[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, cubeTextureID[0]);
+	glUniform1i(localTextureID, 0);
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[11]);
+
+	//draw right
+	glBindVertexArray(VertexArrayID[12]);
+	modelTransformMatrix = glm::mat4(1.0f);
+
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		glm::vec3(30.0f, 0.0f, 0.0f));;
+	modelTransformMatrix = glm::translate(modelTransformMatrix,
+		EntityList[SpaceCraft]->location);;
+	modelTransformMatrix = glm::rotate(modelTransformMatrix, glm::radians(90.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f));;
+	modelTransformMatrix = glm::scale(modelTransformMatrix,
+		glm::vec3(3.0f));;
+	glUniformMatrix4fv(modelTransformMatrixUniformLocation, 1,
+		GL_FALSE, &modelTransformMatrix[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, cubeTextureID[0]);
+	glUniform1i(localTextureID, 0);
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[12]);
+
+
+	glDepthMask(GL_TRUE);
 }
 
 void bufferObject(int objectID, const char* Path) {
