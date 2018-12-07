@@ -65,7 +65,6 @@ float t = 0.0f;
 vec3 lightPosition;
 float diff = 1.0; //diffuse light intensity
 float spec = 1.0; //specular light intensity
-float x = 0.0f;
 
 //vao vbos
 GLuint textureID[NUM_OF_TEXTURE];
@@ -243,7 +242,6 @@ void keyboard(unsigned char key, int x, int y)
 	else if (key == 27) { // escape key to close the program
 		exit(0);
 	}
-
 	else if (key == 'u') {
 		if(diff > 0)
 		diff -= 0.1;
@@ -262,8 +260,7 @@ void keyboard(unsigned char key, int x, int y)
 	}
 }
 
-void move(int key, int x, int y)
-{
+void move(int key, int x, int y){
 	if (key == GLUT_KEY_RIGHT) {
 		EntityList[SpaceCraft]->location =
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(FLY_SPEED, 0.0f, 0.0f, 1.0f));		
@@ -274,8 +271,7 @@ void move(int key, int x, int y)
 	}
 	else if (key == GLUT_KEY_UP) {
 		EntityList[SpaceCraft]->location =
-			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, -FLY_SPEED, 1.0f));
-		x += 2.0f;
+			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, -FLY_SPEED, 1.0f));	
 	}
 	else if (key == GLUT_KEY_DOWN) {
 		EntityList[SpaceCraft]->location =
