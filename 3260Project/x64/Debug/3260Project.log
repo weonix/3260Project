@@ -1,7 +1,11 @@
 ﻿  main.cpp
-d:\development\repos\3260project\3260project\main.cpp(261): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-d:\development\repos\3260project\3260project\main.cpp(277): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\development\repos\3260project\3260project\main.cpp(571): warning C4305: '+=': truncation from 'double' to 'float'
-d:\development\repos\3260project\3260project\main.cpp(710): warning C4267: '=': conversion from 'size_t' to 'GLuint', possible loss of data
-d:\development\repos\3260project\3260project\main.cpp(797): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(249): warning C4305: '-=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(253): warning C4305: '+=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(257): warning C4305: '-=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(261): warning C4305: '+=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(278): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(294): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(588): warning C4305: '+=': truncation from 'double' to 'float'
+d:\development\repos\3260project\3260project\main.cpp(727): warning C4267: '=': conversion from 'size_t' to 'GLuint', possible loss of data
+d:\development\repos\3260project\3260project\main.cpp(814): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   3260Project.vcxproj -> D:\Development\repos\3260Project\x64\Debug\3260Project.exe

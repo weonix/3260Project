@@ -243,6 +243,23 @@ void keyboard(unsigned char key, int x, int y)
 	else if (key == 27) { // escape key to close the program
 		exit(0);
 	}
+
+	else if (key == 'u') {
+		if(diff > 0)
+		diff -= 0.1;
+	}
+	else if (key == 'i') { 
+		if (diff < 2)
+		diff += 0.1;
+	}
+	else if (key == 'j') {
+		if (spec > 0)
+		spec -= 0.1;
+	}
+	else if (key == 'k') { 
+		if (spec < 2)
+		spec += 0.1;
+	}
 }
 
 void move(int key, int x, int y)
