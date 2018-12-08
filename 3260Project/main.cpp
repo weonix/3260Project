@@ -294,11 +294,11 @@ void keyboard(unsigned char key, int x, int y)
 		lightPosition = vec3(0.0, 40.0f, 0.f);
 		lightPosition2 = vec3(30.0, 40.0f, 0.f);
 	}
-	else if (key == 'a') {
+	else if (key == 'd') {
 		EntityList[SpaceCraft]->location =
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(FLY_SPEED, 0.0f, 0.0f, 1.0f));
 	}
-	else if (key == 'd') {
+	else if (key == 'a') {
 		EntityList[SpaceCraft]->location =
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(-FLY_SPEED, 0.0f, 0.0f, 1.0f));
 	}
