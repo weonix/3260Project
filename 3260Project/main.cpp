@@ -684,7 +684,7 @@ void paintGL(void)
 
 	//set up projection matrix
 	glm::mat4 projectionMatrix = glm::mat4(1.0f);
-	projectionMatrix = glm::perspective((float)glm::radians(90.0f), 1.0f / 1.0f, 0.5f, 200.0f);
+	projectionMatrix = glm::perspective((float)glm::radians(90.0f), 1.0f / 1.0f, 0.5f, 350.0f);
 
 	//update entity state and location etc
 	//make the spheres follow the light source
