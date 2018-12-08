@@ -24,7 +24,7 @@ using glm::vec3;
 using glm::mat4;
 
 GLint programID;
-// Could define the Vao&Vbo and interaction parameter here
+
 //maximum number of models and texture
 const int NUM_OF_OBJECT = 20;
 const int NUM_OF_TEXTURE = 20;
@@ -34,18 +34,14 @@ const int ST_VISIBLE = 2;
 const int ST_COLLIDABLE = 4;
 const int ST_OUTSIDE_CHECK = 8;
 
-//bound for the plane movement
-const float RIGHT_BOUND = 20.0f;
-const float LEFT_BOUND = -20.0f;
-const float TOP_BOUND = -20.0f;
-const float BOT_BOUND = 20.0f;
-
-//storing the index of the entities
+//define movement speed parameteres
 float FLY_SPEED = 0.7f;
 const float ROCK_ORBIT_RATE = 0.01f;
 const float PLANET_TURN_RATE = 0.001f;
 const float RING_TURN_RATE = -0.0015f;
 const float ROCK_TURN_RATE = 0.0007f;
+
+//storing the index of the entities
 int Floor;
 int SpaceCraft;
 int Planet1, Planet2;
@@ -55,8 +51,7 @@ int Sun, Sun2;
 int upgrader;
 
 
-//stroring gobal game state variables
-
+//stroring gobal state variables
 float mouseX;
 float mouseY;
 glm::vec3 camPos = glm::vec3(0.0,20.0,20.0);
@@ -112,7 +107,6 @@ int handleCollision(entity * primary, entity * secondary);
 int handleExit(entity * primary, entity * secondary);
 int initEntity(int objID, int texture, int x, int y, int z, glm::mat4 transform, float radius, int collisionHandler);
 int initRock(float radiusMin, float radiusMax, float vOffset, vec3 centre);
-//GLuint loadBMP_data(const char * imagepath, unsigned char ** image, int *width, int *height);
 
 
 //a series utilities for setting shader parameters 
@@ -320,8 +314,7 @@ void move(int key, int x, int y){
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, FLY_SPEED, 1.0f));
 	}
 }
-int oldx = 0;
-float r = 0.0f;
+
 void PassiveMouse(int x, int y)
 {
 	//TODO: Use Mouse to do interactive events and animation
@@ -521,8 +514,6 @@ bool loadOBJ_reverse_normal(
 	return true;
 }
 
-//need load cube texture function ****** Brian
-
 GLuint loadBMP_custom(const char * imagepath) {
 
 	printf("Reading image %s\n", imagepath);
@@ -628,15 +619,13 @@ void sendDataToOpenGL()
 	glutSetCursor(GLUT_CURSOR_NONE);
 }
 
-mat4 LookAtRH(vec3 eye, vec3 target, vec3 up)
-{
-	vec3 zaxis = glm::normalize(eye - target);    // The "forward" vector.
-	vec3 xaxis = glm::normalize(cross(up, zaxis));// The "right" vector.
-	vec3 yaxis = cross(zaxis, xaxis);     // The "up" vector.
+mat4 LookAtRH(vec3 eye, vec3 target, vec3 up){
+	//custom function to point camera direction at object
 
-										  // Create a 4x4 orientation matrix from the right, up, and forward vectors
-										  // This is transposed which is equivalent to performing an inverse 
-										  // if the matrix is orthonormalized (in this case, it is).
+	vec3 zaxis = glm::normalize(eye - target); 
+	vec3 xaxis = glm::normalize(cross(up, zaxis));
+	vec3 yaxis = cross(zaxis, xaxis);     
+
 	mat4 orientation = {
 		glm::vec4(xaxis.x, yaxis.x, zaxis.x, 0),
 		glm::vec4(xaxis.y, yaxis.y, zaxis.y, 0),
@@ -644,10 +633,6 @@ mat4 LookAtRH(vec3 eye, vec3 target, vec3 up)
 		glm::vec4(0,       0,       0,     1)
 	};
 
-	// Create a 4x4 translation matrix.
-	// The eye position is negated which is equivalent
-	// to the inverse of the translation matrix. 
-	// T(v)^-1 == T(-v)
 	mat4 translation = {
 		glm::vec4(1,      0,      0,   0),
 		glm::vec4(0,      1,      0,   0),
@@ -655,10 +640,6 @@ mat4 LookAtRH(vec3 eye, vec3 target, vec3 up)
 		glm::vec4(-eye.x, -eye.y, -eye.z, 1)
 	};
 
-	// Combine the orientation and translation to compute 
-	// the final view matrix. Note that the order of 
-	// multiplication is reversed because the matrices
-	// are already inverted.
 	return (orientation * translation);
 }
 
@@ -675,26 +656,22 @@ void paintGL(void)
 	t += 0.1;
 
 	renderSkybox();
-
-
+	
 	setupLight();
-
-	//Set transformation matrix
 
 	//set up projection matrix
 	glm::mat4 projectionMatrix = glm::mat4(1.0f);
 	projectionMatrix = glm::perspective((float)glm::radians(90.0f), 1.0f / 1.0f, 0.5f, 200.0f);
 
 	//update entity state and location etc
-	//make a sphere follow the light source
+	//make the spheres follow the light source
 	EntityList[Sun]->location = lightPosition;
 	EntityList[Sun2]->location = lightPosition2;
+
 	//make the camera follow the plane
-	//camPos = vec3(glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(EntityList[SpaceCraft]->location,0.0));
+
 	camPos = vec3(EntityList[SpaceCraft]->transform * glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(1.0));
 	camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * glm::vec4(camPos, 1.0));
-	//camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, +10.0f, +10.0f,1.0));
-	//camPos = vec3(x, x, x);
 
 	//send eye position
 	GLint eyePosUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
@@ -702,13 +679,7 @@ void paintGL(void)
 	glUniform4fv(eyePosUniformLocation, 1, &campos4v[0]);
 
 	//set up view matrix
-	glm::mat4 viewMatrix = LookAtRH(camPos, EntityList[SpaceCraft]->location, vec3(0.0f, 1.0f, 0.0f));//glm::mat4(1.0f);
-	//viewMatrix = glm::translate(mat4(), -camPos) * viewMatrix;
-	//viewMatrix = glm::inverse(EntityList[Plane]->transform) * viewMatrix;//glm::rotate(mat4(), glm::radians(camY), glm::vec3(0.0f, 0.0f, 1.0f));
-	//viewMatrix = glm::rotate(mat4(), glm::radians(camX), glm::vec3(1.0f, 0.0f, 0.0f)) * viewMatrix;
-
-
-	
+	glm::mat4 viewMatrix = LookAtRH(camPos, EntityList[SpaceCraft]->location, vec3(0.0f, 1.0f, 0.0f));
 
 	//make the rock oribts
 	for (int i = RockStart; i <= RockEnd; i++) {
@@ -782,6 +753,7 @@ void setupLight()
 
 void renderSkybox()
 {
+	//set specific lighting info to disable lighting for rendering sky box
 	glDepthMask(GL_FALSE);
 	//Set up lighting information
 	GLint lightPositonUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
@@ -793,7 +765,6 @@ void renderSkybox()
 
 
 	GLint diffuseLightUniformLocation = glGetUniformLocation(programID, "diffuseLight");
-	//glm::vec4 diffuseLight(diff, diff, diff, 1.0f);
 	glm::vec4 diffuseLight(0, 0, 0, 1.0f);
 	glUniform4fv(diffuseLightUniformLocation, 1, &diffuseLight[0]);
 
@@ -813,15 +784,6 @@ void renderSkybox()
 	glm::vec4 specularLight2(0, 0, 0, 0.0f);
 	glUniform4fv(specularLightUniformLocation2, 1, &specularLight2[0]);
 
-
-	//set up projection matrix
-	glm::mat4 projectionMatrix = glm::mat4(1.0f);
-	//projectionMatrix = glm::perspective((float)glm::radians(90.0f), 1.0f / 1.0f, 0.5f, 200.0f);
-
-	//update entity state and location etc
-	//make a sphere follow the light source
-	//EntityList[Sun]->location = lightPosition;
-	//EntityList[Sun2]->location = lightPosition2;
 	camPos = vec3(EntityList[SpaceCraft]->transform * glm::translate(glm::mat4(), vec3(0.0f, +10.0f, +10.0f)) * glm::vec4(1.0));
 	camPos = vec3(glm::translate(glm::mat4(), EntityList[SpaceCraft]->location) * glm::vec4(camPos, 1.0));
 
@@ -835,9 +797,6 @@ void renderSkybox()
 
 	GLint viewUniformLocation = glGetUniformLocation(programID, "viewMatrix");
 	glUniformMatrix4fv(viewUniformLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-
-	//GLint projectionMatrixUniformLocation = glGetUniformLocation(programID, "projectionMatrix");
-	//glUniformMatrix4fv(projectionMatrixUniformLocation, 1, GL_FALSE, &projectionMatrix[0][0]);
 
 	GLint modelTransformMatrixUniformLocation = glGetUniformLocation(programID, "modelTransformMatrix");
 
@@ -1098,12 +1057,13 @@ void drawTextureObject(int index, int Texture, glm::mat4 transformMatrix, glm::m
 }
 
 int initEntity(int objID, int texture, int x, int y, int z, float radius, int collisionHandler) {
+	//encapsulated version of initEntity without having to specify transfom matrix
 	return initEntity(objID, texture, x, y, z, glm::mat4(1.0f), radius, collisionHandler);
 }
 
 int initEntity(int objID, int texture, int x, int y, int z, glm::mat4 transform, float radius, int collisionHandler)
 {
-	//initialise entities
+	//initialise an entity and add it to the gobal entity lsit
 	entity* e = (entity*)malloc(sizeof(entity));
 	e->objID = objID;
 	e->texture = texture;
@@ -1119,6 +1079,7 @@ int initEntity(int objID, int texture, int x, int y, int z, glm::mat4 transform,
 }
 
 int initRock(float radiusMin, float radiusMax, float vOffset, vec3 centre) {
+	//unified function to generate a rock entity with random orientation and orbit location
 	float turnx, turny, turnz;
 	turnx = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 360;
 	turny = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 360;
@@ -1143,6 +1104,7 @@ int initRock(float radiusMin, float radiusMax, float vOffset, vec3 centre) {
 }
 
 void drawEntity(entity* e, glm::mat4 viewMatrix, glm::mat4 projectionMatrix) {
+	//draw a object given a entity
 	glm::mat4 modelTransformMatrix = glm::mat4(1.0f);
 	modelTransformMatrix = glm::translate(mat4(), glm::vec3(e->location.x, e->location.y, e->location.z)) * e->transform * e->scale;
 	drawTextureObject(e->objID, e->texture, modelTransformMatrix, viewMatrix, projectionMatrix);
@@ -1158,6 +1120,7 @@ void initializedGL(void) //run only once
 
 
 void initialiseEntities() {
+	//create initialise all entities
 
 	srand(time(NULL));
 	SpaceCraft = initEntity(1, 2, 0, 10, 0, 4.5f, 1); //the plane
@@ -1193,6 +1156,7 @@ void initialiseEntities() {
 }
 
 int checkCollision(entity* e1, entity* e2) {
+	//check if two entity is within each other's collision radius
 	vec3 distance = e1->location - e2->location;
 	if (glm::length(distance) < e1->collisionRadius + e2->collisionRadius) {
 		handleCollision(e1, e2);
@@ -1208,6 +1172,7 @@ int checkCollision(entity* e1, entity* e2) {
 }
 
 int handleCollision(entity* primary, entity* secondary) {
+	// if collision occur, handle different events based on the two entitiies' handler
 	if (primary->collisionHandler == 1 && secondary->collisionHandler == 2) {
 		secondary->status = 0;
 	}
@@ -1226,6 +1191,7 @@ int handleCollision(entity* primary, entity* secondary) {
 }
 
 int handleExit(entity* primary, entity* secondary) {
+	// if 2 entity no longer overlaps, handle different events based on the two entitiies' handler
 	if (primary->collisionHandler == 1 && secondary->collisionHandler == 4) {
 		secondary->status = secondary->status ^ ST_OUTSIDE_CHECK;
 		secondary->texture = 7;
@@ -1241,10 +1207,7 @@ int main(int argc, char *argv[])
 	glutInitWindowSize(900, 900);
 	glutCreateWindow("Final Project - Ling Yiu & Cheung Kam Shing");
 	initialiseEntities();
-	//TODO:
-	/*Register different CALLBACK function for GLUT to response
-	with different events, e.g. window sizing, mouse click or
-	keyboard stroke */
+
 	initializedGL();
 	glutDisplayFunc(paintGL);
 
