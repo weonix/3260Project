@@ -64,6 +64,7 @@ float diff = 1.0; //diffuse light intensity
 float spec = 1.0; //specular light intensity
 float diff2 = 0.0; //diffuse light intensity
 float spec2 = 0.0;
+float invertX = 1.0f;
 
 //vao vbos
 GLuint textureID[NUM_OF_TEXTURE];
@@ -309,6 +310,10 @@ void keyboard(unsigned char key, int x, int y)
 		EntityList[SpaceCraft]->location =
 			vec3(glm::translate(glm::mat4(), vec3(EntityList[SpaceCraft]->location)) * EntityList[SpaceCraft]->transform *  glm::vec4(0.0f, 0.0f, FLY_SPEED, 1.0f));
 	}
+	else if (key == 'x') {
+		invertX *= -1;
+	}
+
 
 }
 
@@ -331,13 +336,15 @@ void move(int key, int x, int y){
 	}
 }
 
+
+
 void PassiveMouse(int x, int y)
 {
 	//TODO: Use Mouse to do interactive events and animation
 	int moveX = x - glutGet(GLUT_WINDOW_WIDTH) / 2;
 	float angleX = moveX / (glutGet(GLUT_WINDOW_WIDTH) / 2.0) * 90.0;
 	glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
-	EntityList[SpaceCraft]->transform *= glm::rotate(glm::mat4(1.0f), glm::radians(angleX), glm::vec3(0.0f, 1.0f, 0.0f));
+	EntityList[SpaceCraft]->transform *= glm::rotate(glm::mat4(1.0f), glm::radians(angleX), glm::vec3(0.0f, invertX, 0.0f));
 	//printf("%d %.2f\n", moveX, angleX);
 }
 
