@@ -1239,7 +1239,7 @@ int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
 	glutInitWindowSize(900, 900);
-	glutCreateWindow("Assignment 2");
+	glutCreateWindow("Final Project - Ling Yiu & Cheung Kam Shing");
 	initialiseEntities();
 	//TODO:
 	/*Register different CALLBACK function for GLUT to response
